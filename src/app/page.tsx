@@ -1,7 +1,14 @@
 import Image from "next/image";
+import blogs from "@/lib/data";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24"></main>
+    <main className="">
+      <div>
+        {blogs.map((blog, index) => (
+          <div></div>
+        ))}
+      </div>
+    </main>
   );
 }

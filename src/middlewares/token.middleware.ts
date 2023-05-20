@@ -1,6 +1,7 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { JwtPayload } from "jsonwebtoken";
 import { NextRequest, NextResponse } from "next/server";
 import userModel from "../models/user.model";
+import { verifyJwtToken } from "@/utils/jwt.util";
 
 interface CustomRequest extends NextRequest {
   user?: JwtPayload;
@@ -8,10 +9,10 @@ interface CustomRequest extends NextRequest {
 
 const tokenDecode = (req: NextRequest) => {
   try {
-    const bearer = req.headers.get("authorization") as string;
-    if (bearer) {
-      const token = bearer.split(" ")[1];
-      return jwt.verify(token, process.env.JWT_SECRET!);
+    const accessToken = req.headers.get("authorization") as string;
+    if (accessToken) {
+      const token = accessToken.split(" ")[1];
+      return verifyJwtToken(token);
     }
     return false;
   } catch {
@@ -19,11 +20,7 @@ const tokenDecode = (req: NextRequest) => {
   }
 };
 
-const tokenAuth = async (
-  req: CustomRequest,
-  res: NextResponse,
-  next: () => void
-) => {
+const tokenAuth = async (req: CustomRequest, next: () => void) => {
   const tokenDecoded = tokenDecode(req);
 
   if (!tokenDecoded) {
@@ -33,7 +30,7 @@ const tokenAuth = async (
     );
   }
 
-  const user = await userModel.findById(tokenDecoded.data);
+  const user = await userModel.findById((tokenDecoded as JwtPayload).data);
 
   if (!user) {
     return NextResponse.json(
